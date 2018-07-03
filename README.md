@@ -4,7 +4,7 @@ Overview/docs: [![GoDoc](https://godoc.org/github.com/splace/table?status.svg)](
 
 from:-
 
-    Firstname   Lastname    Age
+    **Firstname**   **Lastname**    **Age**
     Jill    Smith   50
     Eve Jackson 45
 
