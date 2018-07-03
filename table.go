@@ -74,15 +74,15 @@ func Print(tabulated string,headerRows int, justifiers ...func(string,int)) {
 	if headerRows<len(cells){
 		if headerRows<0 {
 			if NumericNotAlphaSort{
-				sort.Sort(ByColumnNumeric{ByColumn{SortColumn,cells}})
+				sort.Sort(byColumnNumeric{byColumn{SortColumn,cells}})
 				}else{
-				sort.Sort(ByColumnAlpha{ByColumn{SortColumn,cells}})
+				sort.Sort(byColumnAlpha{byColumn{SortColumn,cells}})
 			}
 		}else {	
 			if NumericNotAlphaSort{
-				sort.Sort(ByColumnNumeric{ByColumn{SortColumn,cells[headerRows:]}})
+				sort.Sort(byColumnNumeric{byColumn{SortColumn,cells[headerRows:]}})
 			}else{
-				sort.Sort(ByColumnAlpha{ByColumn{SortColumn,cells[headerRows:]}})
+				sort.Sort(byColumnAlpha{byColumn{SortColumn,cells[headerRows:]}})
 			}
 		}
 	}
@@ -211,26 +211,26 @@ func NumbersRightJustified(c string,w int){
 	LeftJustified(c,w)
 }
 
-type ByColumn  struct{
+type byColumn  struct{
 	Column int
 	Rows [][]string
 }
 
-func (a ByColumn) Len() int           { return len(a.Rows) }
-func (a ByColumn) Swap(i, j int)      { a.Rows[i], a.Rows[j] = a.Rows[j], a.Rows[i] }
+func (a byColumn) Len() int           { return len(a.Rows) }
+func (a byColumn) Swap(i, j int)      { a.Rows[i], a.Rows[j] = a.Rows[j], a.Rows[i] }
 
-type ByColumnAlpha  struct{
-	ByColumn
+type byColumnAlpha  struct{
+	byColumn
 }
 
-func (a ByColumnAlpha) Less(i, j int) bool { return a.Rows[i][a.Column] < a.Rows[j][a.Column] }
+func (a byColumnAlpha) Less(i, j int) bool { return a.Rows[i][a.Column] < a.Rows[j][a.Column] }
 
 
-type ByColumnNumeric  struct{
-	ByColumn
+type byColumnNumeric  struct{
+	byColumn
 }
 
-func (a ByColumnNumeric) Less(i, j int) bool { 
+func (a byColumnNumeric) Less(i, j int) bool { 
 	v1,err1:= strconv.ParseFloat(a.Rows[i][a.Column],64)
 	v2,err2:= strconv.ParseFloat(a.Rows[j][a.Column],64)
 	if err1==nil && err2==nil {
