@@ -16,6 +16,28 @@ var tableTests = []struct {
 		nil,
 		"|1|2|3|",
 	},
+	{
+`A	B	C
+1	2	3`,
+		1,
+		nil,
+`|A|B|C|
+|-|-|-|
+|1|2|3|`,
+	},
+	{
+`Name	Age	Height(m)
+John Doe	47	1.89
+Jane Roe	42	1.90
+Alan Roe	42	1.90`,
+		1,
+		nil,
+`|  Name  |Age|Height(m)|
+|--------|---|---------|
+|Alan Roe| 42|   1.90  |
+|Jane Roe| 42|   1.90  |
+|John Doe| 47|   1.89  |`,
+	},
 }
 
 
@@ -27,5 +49,6 @@ func TestTable(t *testing.T) {
 		if buf.String()!=fmt.Sprintln(tt.output){
 			t.Fatalf("#%v:found:%s wanted:%s",i,buf.String(),tt.output)
 		}
+		buf.Reset()
 	}
 }

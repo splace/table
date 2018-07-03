@@ -5,9 +5,11 @@ import "bufio"
 import "fmt"
 import "strconv"
 import "io"
+import "sort"
 
 var Writer io.Writer
-
+var SortColumn  int
+var NumericNotAlphaSort bool
 type codePoint []byte
 
 // write a code point repeatedly
@@ -64,7 +66,25 @@ func Print(tabulated string,headerRows int, justifiers ...func(string,int)) {
 				columnMaxWidths[ci]=len(rowCells[ci])
 			} 
 		}
+		// order by function
 		cells=append(cells,rowCells)
+	}
+
+	// sort non-header rows alphanumerically on first column 
+	if headerRows<len(cells){
+		if headerRows<0 {
+			if NumericNotAlphaSort{
+				sort.Sort(ByColumnNumeric{ByColumn{SortColumn,cells}})
+				}else{
+				sort.Sort(ByColumnAlpha{ByColumn{SortColumn,cells}})
+			}
+		}else {	
+			if NumericNotAlphaSort{
+				sort.Sort(ByColumnNumeric{ByColumn{SortColumn,cells[headerRows:]}})
+			}else{
+				sort.Sort(ByColumnAlpha{ByColumn{SortColumn,cells[headerRows:]}})
+			}
+		}
 	}
 
 	// determine justifier used for a column
@@ -191,7 +211,31 @@ func NumbersRightJustified(c string,w int){
 	LeftJustified(c,w)
 }
 
-/* run: tags="" hal3 Tue 3 Jul 18:29:31 BST 2018 go version go1.10.3 linux/amd64
-Tue 3 Jul 18:29:31 BST 2018
-*/
+type ByColumn  struct{
+	Column int
+	Rows [][]string
+}
+
+func (a ByColumn) Len() int           { return len(a.Rows) }
+func (a ByColumn) Swap(i, j int)      { a.Rows[i], a.Rows[j] = a.Rows[j], a.Rows[i] }
+
+type ByColumnAlpha  struct{
+	ByColumn
+}
+
+func (a ByColumnAlpha) Less(i, j int) bool { return a.Rows[i][a.Column] < a.Rows[j][a.Column] }
+
+
+type ByColumnNumeric  struct{
+	ByColumn
+}
+
+func (a ByColumnNumeric) Less(i, j int) bool { 
+	v1,err1:= strconv.ParseFloat(a.Rows[i][a.Column],64)
+	v2,err2:= strconv.ParseFloat(a.Rows[j][a.Column],64)
+	if err1==nil && err2==nil {
+		return v1 < v2
+	}
+	return err1==nil
+}
 
