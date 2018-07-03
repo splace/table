@@ -1,0 +1,30 @@
+package table
+
+var Format = MarkupFormat
+// built-in formats
+const ASCIIFormat string = "+ ++"
+const ASCIIBoxFormat string = "+-+++-+++ +++-++"
+const MarkupFormat string = "|-||| ||"
+const SquareFormat string = "┌─┬┐├─┼┤│ ││└─┴┘"
+const SquareThickHeaderDivideFormat string = "┌─┬┐┝━┿┥│ ││└─┴┘"
+const SquareDoubleEdgeFormat string = "╔═╤╗╟─┼╢║ │║╚═╧╝"
+const SquareSingleVerticalFormat string = "╔═╤╗╠═╪╣║ │║╚═╧╝"
+const SquareDoubleEdgeHorizontalFormat string = "╔═╤╗╠═╪╣║ │║╚═╧╝"
+const SquareDoubleTopBottomFormat string = "╒═╤╕├─┼┤│ ││╘═╧╛"
+const SquareDoubleSidesFormat string = "╓─┬╖╟─┼╢║ │║╙─┴╜"
+const SquareDoubleTopFormat string = "╒═╤╕├─┼┤│ ││└─┴┘"
+const SquareDoubleDivideFormat string = "┌─┬┐╞═╪╡│ ││└─┴┘"
+const SquareDoubleBottomFormat string = "┌─┬┐├─┼┤│ ││╘═╧╛"
+const SquareDoubleRightFormat string = "┌─┬╖├─┼┤│ ││└─┴╜"
+const SquareDoubleLeftFormat string = "╓─┬┐╟─┼┤║ ││╙─┴┘"
+const SquareDoubleInsideFormat string = "┌─╥┐╞═╬╡│ ║│└─╨┘"
+const SquareDoubleInsideVerticalFormat string = "┌─╥┐├─╫┤│ ║│└─╨┘"
+const SquareDoubleInsideHorizontalFormat string = "┌─┬┐╞═╪╡│ ││└─┴┘"
+const RoundedFormat string = "╭─┬╮├─┼┤│ ││╰─┴╯"
+const RoundedDoubleInsideFormat string = "╭─╥╮╞═╬╡│ ║│╰─╨╯"
+const RoundedDoubleInsideHorizontalFormat string = "╭─┬╮╞═╪╡│ ││╰─┴╯"
+const RoundedDoubleInsideVerticalFormat string = "╭─╥╮├─╫┤│ ║│╰─╨╯"
+const DoubleFormat string = "╔═╦╗╠═╬╣║ ║║╚═╩╝"
+const DoubleVerticalFormat string = "╓─╥╖╟─╫╢║ ║║╙─╨╜"
+const DoubleHorizontalFormat string = "╒═╤╕╞═╪╡│ ││╘═╧╛"
+
