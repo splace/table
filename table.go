@@ -25,39 +25,39 @@ func (c codePoint) repeat(w int){
 
 
 
-var justifierPadding codePoint
+var formatterPadding codePoint
 
-type rowFormatting struct{
+type rowStyling struct{
 	left,padding,divider,right codePoint
 }
 
 // see Print
-func Fprint(w io.Writer,tabulated string,headerRows int, justifiers ...func(string,int)) {
+func Fprint(w io.Writer,tabulated string,headerRows int, formatters ...func(string,int)) {
 	Writer=w
-	Print(tabulated,headerRows, justifiers...)
+	Print(tabulated,headerRows, formatters...)
 } 
 
 // see Print
-func Printf(format string, tabulated string,headerRows int, justifiers ...func(string,int)) {
-	Format=format
-	Print(tabulated,headerRows, justifiers...)
+func Printf(s string, tabulated string,headerRows int, formatters ...func(string,int)) {
+	Style=s
+	Print(tabulated,headerRows, formatters...)
 }
 
 // see Print
-func Fprintf(w io.Writer,format string, tabulated string,headerRows int, justifiers ...func(string,int)) {
+func Fprintf(w io.Writer,s string, tabulated string,headerRows int, formatters ...func(string,int)) {
 	Writer=w
-	Format=format
-	Print(tabulated,headerRows, justifiers...)
+	Style=s
+	Print(tabulated,headerRows, formatters...)
 }
 
-// write string as text table, monospaced font assumed, rows from lines, columns from tab character.
+// write string as text table, mono-spaced font assumed, rows from lines, columns from tab character.
 // headerrows - specify how many rows, at the top, formatted specially.
-// justifiers - use by columns, missing:use defaut, len=1:use for all cells, len=n:use n'th for n'th column  
-// Not thread safe, uses globals, can be used multiple, fixed count, times using mulitple imports.
+// formatters - use by columns, missing:use default, len=1:use for all cells, len=n:use n'th for n'th column  
+// Not thread safe, uses globals, can be used multiple, fixed count, times using multiple imports.
 // Unicode supporting.
-// many built-in table format styles, set global var `Format`
+// many built-in table styles, set global var `Style`
 // output written to global var `Writer`
-func Print(tabulated string,headerRows int, justifiers ...func(string,int)) {
+func Print(tabulated string,headerRows int, formatters ...func(string,int)) {
 	// find max rows/widths, record cell strings
 	var columnMaxWidths []int 
 	var cells [][]string
@@ -76,7 +76,7 @@ func Print(tabulated string,headerRows int, justifiers ...func(string,int)) {
 		cells=append(cells,rowCells)
 	}
 
-	// oder sortColumn by NumericNotAlphaSort
+	// order sortColumn by NumericNotAlphaSort
 	if SortColumn>0{
 		if headerRows<len(cells){
 			if headerRows<0 {
@@ -95,24 +95,24 @@ func Print(tabulated string,headerRows int, justifiers ...func(string,int)) {
 		}
 	}
 	
-	// determine justifier used for a column
-	justifier := func(c int)func(string,int){
-		if c<len(justifiers) {
-			return justifiers[c]
+	// determine formatter used for a column
+	formatter := func(c int)func(string,int){
+		if c<len(formatters) {
+			return formatters[c]
 		}
-		if len(justifiers)==1{
-			return justifiers[0]
+		if len(formatters)==1{
+			return formatters[0]
 		}
-		return DefaultJustifier
+		return DefaultFormatter
 	}
 	
-	// use a scanner to split format string into individual UTF8 code points
-	runeScanner := bufio.NewScanner(strings.NewReader(Format))
+	// use a scanner to split Style string into individual UTF8 code points
+	runeScanner := bufio.NewScanner(strings.NewReader(Style))
 	runeScanner.Split(bufio.ScanRunes)
 	
 	// scan four code points, for a row.
-	scanRowFormatting:=func() *rowFormatting {
-		rf:=new(rowFormatting)
+	scanRowStyling:=func() *rowStyling {
+		rf:=new(rowStyling)
 		runeScanner.Scan()			
 		rf.left=codePoint(runeScanner.Bytes())
 		runeScanner.Scan()			
@@ -124,15 +124,14 @@ func Print(tabulated string,headerRows int, justifiers ...func(string,int)) {
 		return rf
 	}	
 
-	// write a contentless row, if formatting present.
-	writeRow:=func(rf *rowFormatting) {
+	// write a content-less row, if Styleting present.
+	writeRow:=func(rf *rowStyling) {
 		if rf==nil{return}
 		Writer.Write(rf.left)
-		//temp:=justifierPadding
-		justifierPadding=rf.padding
+		formatterPadding=rf.padding
 		if ColumnMapper==nil{
 			for column,width:=range(columnMaxWidths){
-				justifier(column)("",width)
+				formatter(column)("",width)
 				if column<len(columnMaxWidths)-1 {
 					Writer.Write(rf.divider)
 				}
@@ -140,100 +139,99 @@ func Print(tabulated string,headerRows int, justifiers ...func(string,int)) {
 		}else{
 			for column:=range(columnMaxWidths){
 				c:=ColumnMapper(column)
-				justifier(c)("",columnMaxWidths[c])
+				formatter(c)("",columnMaxWidths[c])
 				if column<len(columnMaxWidths)-1 {
 					Writer.Write(rf.divider)
 				}
 			}
 		}	
-		//justifierPadding=temp
 		Writer.Write(rf.right)
 		fmt.Fprintln(Writer)
 	}
 
-	// parse row type formatting blocks from Format, use helpful assumptions when not all blocks present.
-	var dividerRowFormatting,cellRowFormatting,topRowFormatting *rowFormatting
-	firstRowFormatting:=scanRowFormatting()
-	if firstRowFormatting==nil{
-		fmt.Fprintf(Writer, "Format `%s` needs to have at least 4 characters.",Format)
+	// parse row type Styleting blocks from Style, use helpful assumptions when not all blocks present.
+	var dividerRowStyling,cellRowStyling,topRowStyling *rowStyling
+	firstRowStyling:=scanRowStyling()
+	if firstRowStyling==nil{
+		fmt.Fprintf(Writer, "Style `%s` needs to have at least 4 characters.",Style)
 		return 
 	}
-	secondRowFormatting:=scanRowFormatting()
-	if secondRowFormatting==nil{
-		secondRowFormatting=firstRowFormatting
+	secondRowStyling:=scanRowStyling()
+	if secondRowStyling==nil{
+		secondRowStyling=firstRowStyling
 	}
-	thirdRowFormatting:=scanRowFormatting()
-	if thirdRowFormatting==nil{
-		dividerRowFormatting=firstRowFormatting
-		cellRowFormatting=secondRowFormatting
-		topRowFormatting=nil
+	thirdRowStyling:=scanRowStyling()
+	if thirdRowStyling==nil{
+		dividerRowStyling=firstRowStyling
+		cellRowStyling=secondRowStyling
+		topRowStyling=nil
 	}else{
-		dividerRowFormatting=secondRowFormatting
-		cellRowFormatting=thirdRowFormatting
-		topRowFormatting=firstRowFormatting
+		dividerRowStyling=secondRowStyling
+		cellRowStyling=thirdRowStyling
+		topRowStyling=firstRowStyling
 	}
 
 	// write table
-	writeRow(topRowFormatting)
-	justifierPadding = cellRowFormatting.padding
+	writeRow(topRowStyling)
+	formatterPadding = cellRowStyling.padding
 	if ColumnMapper!=nil{
 		for row:=range cells{
 			if row==headerRows{
-				writeRow(dividerRowFormatting)
-				justifierPadding = cellRowFormatting.padding
+				writeRow(dividerRowStyling)
+				formatterPadding = cellRowStyling.padding
 			}
-			Writer.Write(cellRowFormatting.left)
+			Writer.Write(cellRowStyling.left)
 			for column:=range(cells[row]){
 				c:=ColumnMapper(column)
-				justifier(c)(cells[row][c],columnMaxWidths[c])
+				formatter(c)(cells[row][c],columnMaxWidths[c])
 				if column<len(columnMaxWidths)-1 {
-					Writer.Write(cellRowFormatting.divider)
+					Writer.Write(cellRowStyling.divider)
 				}
 			}
-			Writer.Write(cellRowFormatting.right)
+			Writer.Write(cellRowStyling.right)
 			fmt.Fprintln(Writer)
 		}
 	}else{  
 		for row:=range cells{
 			if row==headerRows{
-				writeRow(dividerRowFormatting)
-				justifierPadding = cellRowFormatting.padding
+				writeRow(dividerRowStyling)
+				formatterPadding = cellRowStyling.padding
 			}
-			Writer.Write(cellRowFormatting.left)
+			Writer.Write(cellRowStyling.left)
 			for column,cell:=range(cells[row]){
-				justifier(column)(cell,columnMaxWidths[column])
+				formatter(column)(cell,columnMaxWidths[column])
 				if column<len(columnMaxWidths)-1 {
-					Writer.Write(cellRowFormatting.divider)
+					Writer.Write(cellRowStyling.divider)
 				}
 			}
-			Writer.Write(cellRowFormatting.right)
+			Writer.Write(cellRowStyling.right)
 			fmt.Fprintln(Writer)
 		}
 	}
-	writeRow(scanRowFormatting())
+	writeRow(scanRowStyling())
 }
 
-// justifiers
+// formatters
 
-// used to justify when no specific justifiers provided
-var DefaultJustifier = Centred
+// used to format when no specific formatters provided
+var DefaultFormatter = Centred
 
 func RightJustified(c string,w int){
-	justifierPadding.repeat(w-len([]rune(c)))
+	formatterPadding.repeat(w-len([]rune(c)))
 	fmt.Fprint(Writer,c)
 }
 
 func LeftJustified(c string,w int){
 	fmt.Fprint(Writer,c)
-	justifierPadding.repeat(w-len([]rune(c)))
+	formatterPadding.repeat(w-len([]rune(c)))
 }
 
 func Centred(c string,w int){
 	lc:=len([]rune(c))
 	offset:=((w-lc+1)/2)
-	justifierPadding.repeat(offset)
+	formatterPadding.repeat(offset)
 	fmt.Fprint(Writer,c)
-	justifierPadding.repeat(w-lc-offset)
+	formatterPadding.repeat(w-lc-offset)
 }
 
 func NumberBoolJustified(c string,w int){	
@@ -254,15 +252,15 @@ func NumbersRightJustified(c string,w int){
 	LeftJustified(c,w)
 }
 
-// modify a justifier to have a mininum width
-func MinWidth(just func(string,int),min uint)func(string,int){
+// modify a formatter to have a minimum width
+func MinWidth(form func(string,int),min uint)func(string,int){
 	m:=int(min)
 	return func(s string,w int){
 		if w<m {
-			just(s,m)
+			form(s,m)
 			return
 		}
-		just(s,w)
+		form(s,w)
 	}
 }
 

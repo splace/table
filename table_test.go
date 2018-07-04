@@ -9,9 +9,9 @@ var tableTests = []struct {
 	headerRows int   
 	justifiers []func(string,int)
 	output  string
-	outputACIIFormat string
-	outputACIIFormatSortColumn1 string
-	outputACIIFormatSortColumn1Column2ToLeft string
+	outputACIIStyle string
+	outputACIIStyleSortColumn1 string
+	outputACIIStyleSortColumn1Column2ToLeft string
 }{
 	{
 		"1\t2\t3",
@@ -161,19 +161,19 @@ func TestTable(t *testing.T) {
 		}
 		buf.Reset()
 	}
-	Format=ASCIIFormat
+	Style=ASCIIStyle
 	for i, tt := range tableTests {
 		Print(tt.text,tt.headerRows,tt.justifiers...)
-		if buf.String()!=fmt.Sprintln(tt.outputACIIFormat){
-			t.Fatalf("#%v:found:\n%s wanted:\n%s",i,buf.String(),tt.outputACIIFormat)
+		if buf.String()!=fmt.Sprintln(tt.outputACIIStyle){
+			t.Fatalf("#%v:found:\n%s wanted:\n%s",i,buf.String(),tt.outputACIIStyle)
 		}
 		buf.Reset()
 	}
 	SortColumn =1
 	for i, tt := range tableTests {
 		Print(tt.text,tt.headerRows,tt.justifiers...)
-		if buf.String()!=fmt.Sprintln(tt.outputACIIFormatSortColumn1){
-			t.Fatalf("#%v:found:\n%s wanted:\n%s",i,buf.String(),tt.outputACIIFormatSortColumn1)
+		if buf.String()!=fmt.Sprintln(tt.outputACIIStyleSortColumn1){
+			t.Fatalf("#%v:found:\n%s wanted:\n%s",i,buf.String(),tt.outputACIIStyleSortColumn1)
 		}
 		buf.Reset()
 	}
@@ -181,8 +181,8 @@ func TestTable(t *testing.T) {
 	ColumnMapper=MoveToLeftEdge(2) 
 	for i, tt := range tableTests {
 		Print(tt.text,tt.headerRows,tt.justifiers...)
-		if buf.String()!=fmt.Sprintln(tt.outputACIIFormatSortColumn1Column2ToLeft){
-			t.Fatalf("#%v:found:\n%s wanted:\n%s",i,buf.String(),tt.outputACIIFormatSortColumn1Column2ToLeft)
+		if buf.String()!=fmt.Sprintln(tt.outputACIIStyleSortColumn1Column2ToLeft){
+			t.Fatalf("#%v:found:\n%s wanted:\n%s",i,buf.String(),tt.outputACIIStyleSortColumn1Column2ToLeft)
 		}
 		buf.Reset()
 	}
