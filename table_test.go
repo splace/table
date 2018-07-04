@@ -7,29 +7,38 @@ import "strings"
 var tableTests = []struct {
 	text       string
 	headerRows int   
-	sortColumn int
-	orderNumeric bool     
 	justifiers []func(string,int)
 	output  string
+	outputACIIFormat string
+	outputACIIFormatSortColumn1 string
+	outputACIIFormatSortColumn1Column2ToLeft string
 }{
 	{
 		"1\t2\t3",
 		-1,
-		0,
-		false,
 		nil,
 		"|1|2|3|",
+		"|1|2|3|",
+		"|1|2|3|",
+		"|2|1|3|",
 	},
 	{
 `A	B	C
 1	2	3`,
 		1,
-		0,
-		false,
 		nil,
 `|A|B|C|
 |-|-|-|
 |1|2|3|`,
+`|A|B|C|
++-+-+-+
+|1|2|3|`,
+`|A|B|C|
++-+-+-+
+|1|2|3|`,
+`|B|A|C|
++-+-+-+
+|2|1|3|`,
 	},
 	{
 `Name	Age	Height(m)
@@ -37,14 +46,107 @@ John Doe	47	1.89
 Jane Roe	42	1.90
 Alan Roe	42	1.90`,
 		1,
-		1,
-		false,
 		nil,
 `|  Name  |Age|Height(m)|
 |--------|---|---------|
+|John Doe| 47|   1.89  |
+|Jane Roe| 42|   1.90  |
+|Alan Roe| 42|   1.90  |`,
+`|  Name  |Age|Height(m)|
++--------+---+---------+
+|John Doe| 47|   1.89  |
+|Jane Roe| 42|   1.90  |
+|Alan Roe| 42|   1.90  |`,
+`|  Name  |Age|Height(m)|
++--------+---+---------+
 |Alan Roe| 42|   1.90  |
 |Jane Roe| 42|   1.90  |
 |John Doe| 47|   1.89  |`,
+`|Age|  Name  |Height(m)|
++---+--------+---------+
+| 42|Alan Roe|   1.90  |
+| 42|Jane Roe|   1.90  |
+| 47|John Doe|   1.89  |`,
+	},
+	{
+`Name	Age	Height(m)
+John Doe	47	1.89
+Jane Roe	42	1.90
+Alan Roe	42	1.90`,
+		4,
+		nil,
+`|  Name  |Age|Height(m)|
+|John Doe| 47|   1.89  |
+|Jane Roe| 42|   1.90  |
+|Alan Roe| 42|   1.90  |`,
+`|  Name  |Age|Height(m)|
+|John Doe| 47|   1.89  |
+|Jane Roe| 42|   1.90  |
+|Alan Roe| 42|   1.90  |`,
+`|  Name  |Age|Height(m)|
+|John Doe| 47|   1.89  |
+|Jane Roe| 42|   1.90  |
+|Alan Roe| 42|   1.90  |`,
+`|Age|  Name  |Height(m)|
+| 47|John Doe|   1.89  |
+| 42|Jane Roe|   1.90  |
+| 42|Alan Roe|   1.90  |`,
+	},
+	{
+`Name	Age	Height(m)
+John Doe	47	1.89
+Jane Roe	42	1.90
+Alan Roe	42	1.90`,
+		1,
+		[]func(string,int){Centred,LeftJustified},
+`|  Name  |Age|Height(m)|
+|--------|---|---------|
+|John Doe|47 |   1.89  |
+|Jane Roe|42 |   1.90  |
+|Alan Roe|42 |   1.90  |`,
+`|  Name  |Age|Height(m)|
++--------+---+---------+
+|John Doe|47 |   1.89  |
+|Jane Roe|42 |   1.90  |
+|Alan Roe|42 |   1.90  |`,
+`|  Name  |Age|Height(m)|
++--------+---+---------+
+|Alan Roe|42 |   1.90  |
+|Jane Roe|42 |   1.90  |
+|John Doe|47 |   1.89  |`,
+`|Age|  Name  |Height(m)|
++---+--------+---------+
+|42 |Alan Roe|   1.90  |
+|42 |Jane Roe|   1.90  |
+|47 |John Doe|   1.89  |`,
+	},
+	{
+`Name	Age	Height(m)
+John Doe	47	1.89
+Jane Roe	42	1.90
+Alan Roe	42	1.90`,
+		1,
+		[]func(string,int){Centred,MinWidth(RightJustified,5)},
+`|  Name  |  Age|Height(m)|
+|--------|-----|---------|
+|John Doe|   47|   1.89  |
+|Jane Roe|   42|   1.90  |
+|Alan Roe|   42|   1.90  |`,
+`|  Name  |  Age|Height(m)|
++--------+-----+---------+
+|John Doe|   47|   1.89  |
+|Jane Roe|   42|   1.90  |
+|Alan Roe|   42|   1.90  |`,
+`|  Name  |  Age|Height(m)|
++--------+-----+---------+
+|Alan Roe|   42|   1.90  |
+|Jane Roe|   42|   1.90  |
+|John Doe|   47|   1.89  |`,
+`|  Age|  Name  |Height(m)|
++-----+--------+---------+
+|   42|Alan Roe|   1.90  |
+|   42|Jane Roe|   1.90  |
+|   47|John Doe|   1.89  |`,
 	},
 }
 
@@ -53,12 +155,38 @@ func TestTable(t *testing.T) {
 	var buf strings.Builder
 	Writer=&buf
 	for i, tt := range tableTests {
-		SortColumn=tt.sortColumn
-		NumericNotAlphaSort=tt.orderNumeric
 		Print(tt.text,tt.headerRows,tt.justifiers...)
 		if buf.String()!=fmt.Sprintln(tt.output){
-			t.Fatalf("#%v:found:%s wanted:%s",i,buf.String(),tt.output)
+			t.Fatalf("#%v:found:\n%s wanted:\n%s",i,buf.String(),tt.output)
 		}
 		buf.Reset()
 	}
+	Format=ASCIIFormat
+	for i, tt := range tableTests {
+		Print(tt.text,tt.headerRows,tt.justifiers...)
+		if buf.String()!=fmt.Sprintln(tt.outputACIIFormat){
+			t.Fatalf("#%v:found:\n%s wanted:\n%s",i,buf.String(),tt.outputACIIFormat)
+		}
+		buf.Reset()
+	}
+	SortColumn =1
+	for i, tt := range tableTests {
+		Print(tt.text,tt.headerRows,tt.justifiers...)
+		if buf.String()!=fmt.Sprintln(tt.outputACIIFormatSortColumn1){
+			t.Fatalf("#%v:found:\n%s wanted:\n%s",i,buf.String(),tt.outputACIIFormatSortColumn1)
+		}
+		buf.Reset()
+	}
+	
+	ColumnMapper=MoveToLeftEdge(2) 
+	for i, tt := range tableTests {
+		Print(tt.text,tt.headerRows,tt.justifiers...)
+		if buf.String()!=fmt.Sprintln(tt.outputACIIFormatSortColumn1Column2ToLeft){
+			t.Fatalf("#%v:found:\n%s wanted:\n%s",i,buf.String(),tt.outputACIIFormatSortColumn1Column2ToLeft)
+		}
+		buf.Reset()
+	}
+
+
 }
+

@@ -4,8 +4,8 @@ var Format = MarkupFormat
 
 // built-in formats
  const (
-	ASCIIFormat string = "+ ++"
-	ASCIIBoxFormat string = "+-+++-+++ +++-++"
+	ASCIIFormat string = "+-++| ||"
+	ASCIIBoxFormat string = "+-+++-++| ||+-++"
 	MarkupFormat string = "|-||| ||"
 	SquareFormat string = "┌─┬┐├─┼┤│ ││└─┴┘"
 	SquareThickHeaderDivideFormat string = "┌─┬┐┝━┿┥│ ││└─┴┘"

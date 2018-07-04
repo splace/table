@@ -10,6 +10,10 @@ import "sort"
 var Writer io.Writer
 var SortColumn  int
 var NumericNotAlphaSort bool
+
+// rearrange columns 
+var ColumnMapper func(int)int
+
 type codePoint []byte
 
 // write a code point repeatedly
@@ -18,6 +22,8 @@ func (c codePoint) repeat(w int){
 		Writer.Write(c)
 	}
 }
+
+
 
 var justifierPadding codePoint
 
@@ -118,16 +124,29 @@ func Print(tabulated string,headerRows int, justifiers ...func(string,int)) {
 		return rf
 	}	
 
-	// write a contentless row, if formatting presnt.
+	// write a contentless row, if formatting present.
 	writeRow:=func(rf *rowFormatting) {
 		if rf==nil{return}
 		Writer.Write(rf.left)
-		for column,width:=range(columnMaxWidths){
-			rf.padding.repeat(width)
-			if column<len(columnMaxWidths)-1 {
-				Writer.Write(rf.divider)
+		temp:=justifierPadding
+		justifierPadding=rf.padding
+		if ColumnMapper==nil{
+			for column,width:=range(columnMaxWidths){
+				justifier(column)("",width)
+				if column<len(columnMaxWidths)-1 {
+					Writer.Write(rf.divider)
+				}
 			}
-		}
+		}else{
+			for column:=range(columnMaxWidths){
+				c:=ColumnMapper(column)
+				justifier(c)("",columnMaxWidths[c])
+				if column<len(columnMaxWidths)-1 {
+					Writer.Write(rf.divider)
+				}
+			}
+		}	
+		justifierPadding=temp
 		Writer.Write(rf.right)
 		fmt.Fprintln(Writer)
 	}
@@ -158,22 +177,42 @@ func Print(tabulated string,headerRows int, justifiers ...func(string,int)) {
 	writeRow(topRowFormatting)
 	justifierPadding = cellRowFormatting.padding
 	
-	for row:=range cells{
-		if row==headerRows{
-			writeRow(dividerRowFormatting)
-		}
-		Writer.Write(cellRowFormatting.left)
-		for column,cell:=range(cells[row]){
-			justifier(column)(cell,columnMaxWidths[column])
-			if column<len(columnMaxWidths)-1 {
-				Writer.Write(cellRowFormatting.divider)
+	if ColumnMapper!=nil{
+		for row:=range cells{
+			if row==headerRows{
+				writeRow(dividerRowFormatting)
 			}
+			Writer.Write(cellRowFormatting.left)
+			for column:=range(cells[row]){
+				c:=ColumnMapper(column)
+				justifier(c)(cells[row][c],columnMaxWidths[c])
+				if column<len(columnMaxWidths)-1 {
+					Writer.Write(cellRowFormatting.divider)
+				}
+			}
+			Writer.Write(cellRowFormatting.right)
+			fmt.Fprintln(Writer)
 		}
-		Writer.Write(cellRowFormatting.right)
-		fmt.Fprintln(Writer)
+	}else{  
+		for row:=range cells{
+			if row==headerRows{
+				writeRow(dividerRowFormatting)
+			}
+			Writer.Write(cellRowFormatting.left)
+			for column,cell:=range(cells[row]){
+				justifier(column)(cell,columnMaxWidths[column])
+				if column<len(columnMaxWidths)-1 {
+					Writer.Write(cellRowFormatting.divider)
+				}
+			}
+			Writer.Write(cellRowFormatting.right)
+			fmt.Fprintln(Writer)
+		}
 	}
 	writeRow(scanRowFormatting())
 }
+
+// justifiers
 
 // used to justify when no specific justifiers provided
 var DefaultJustifier = Centred
@@ -200,18 +239,33 @@ func NumberBoolJustified(c string,w int){
 	_, err := strconv.ParseBool(c)
 	if err==nil{
 		Centred(c,w)
+		return
 	}
 	NumbersRightJustified(c,w)
 }
-
 
 func NumbersRightJustified(c string,w int){	
 	_, err := strconv.ParseInt(c, 10, 64)
 	if err==nil{
 		RightJustified(c,w)
+		return
 	}
 	LeftJustified(c,w)
 }
+
+// modify a justifier to have a mininum width
+func MinWidth(just func(string,int),min uint)func(string,int){
+	m:=int(min)
+	return func(s string,w int){
+		if w<m {
+			just(s,m)
+			return
+		}
+		just(s,w)
+	}
+}
+
+// sorters
 
 type byColumn  struct{
 	ColumnIndex int
@@ -232,6 +286,7 @@ type byColumnNumeric  struct{
 	byColumn
 }
 
+
 func (a byColumnNumeric) Less(i, j int) bool { 
 	v1,err1:= strconv.ParseFloat(a.Rows[i][a.ColumnIndex],64)
 	v2,err2:= strconv.ParseFloat(a.Rows[j][a.ColumnIndex],64)
@@ -239,5 +294,17 @@ func (a byColumnNumeric) Less(i, j int) bool {
 		return v1 < v2
 	}
 	return err1==nil
+}
+
+// mappers
+
+// column mapper to put a particular column first, columns are numbered from 1, otherwise preserves order.
+func MoveToLeftEdge(column uint) func(int)int{
+	c:=int(column-1)
+	return func(n int) int{
+		if n<c {return n+1}
+		if n==c {return 0}
+		return n
+	}
 }
 
