@@ -6,13 +6,17 @@ import "strings"
 
 var tableTests = []struct {
 	text       string
-	headerRows int        
+	headerRows int   
+	sortColumn int
+	orderNumeric bool     
 	justifiers []func(string,int)
 	output  string
 }{
 	{
 		"1\t2\t3",
 		-1,
+		0,
+		false,
 		nil,
 		"|1|2|3|",
 	},
@@ -20,6 +24,8 @@ var tableTests = []struct {
 `A	B	C
 1	2	3`,
 		1,
+		0,
+		false,
 		nil,
 `|A|B|C|
 |-|-|-|
@@ -31,6 +37,8 @@ John Doe	47	1.89
 Jane Roe	42	1.90
 Alan Roe	42	1.90`,
 		1,
+		1,
+		false,
 		nil,
 `|  Name  |Age|Height(m)|
 |--------|---|---------|
@@ -45,6 +53,8 @@ func TestTable(t *testing.T) {
 	var buf strings.Builder
 	Writer=&buf
 	for i, tt := range tableTests {
+		SortColumn=tt.sortColumn
+		NumericNotAlphaSort=tt.orderNumeric
 		Print(tt.text,tt.headerRows,tt.justifiers...)
 		if buf.String()!=fmt.Sprintln(tt.output){
 			t.Fatalf("#%v:found:%s wanted:%s",i,buf.String(),tt.output)

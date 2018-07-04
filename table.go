@@ -70,23 +70,25 @@ func Print(tabulated string,headerRows int, justifiers ...func(string,int)) {
 		cells=append(cells,rowCells)
 	}
 
-	// sort non-header rows alphanumerically on first column 
-	if headerRows<len(cells){
-		if headerRows<0 {
-			if NumericNotAlphaSort{
-				sort.Sort(byColumnNumeric{byColumn{SortColumn,cells}})
+	// oder sortColumn by NumericNotAlphaSort
+	if SortColumn>0{
+		if headerRows<len(cells){
+			if headerRows<0 {
+				if NumericNotAlphaSort{
+					sort.Sort(byColumnNumeric{byColumn{SortColumn-1,cells}})
+					}else{
+					sort.Sort(byColumnAlpha{byColumn{SortColumn-1,cells}})
+				}
+			}else {	
+				if NumericNotAlphaSort{
+					sort.Sort(byColumnNumeric{byColumn{SortColumn-1,cells[headerRows:]}})
 				}else{
-				sort.Sort(byColumnAlpha{byColumn{SortColumn,cells}})
-			}
-		}else {	
-			if NumericNotAlphaSort{
-				sort.Sort(byColumnNumeric{byColumn{SortColumn,cells[headerRows:]}})
-			}else{
-				sort.Sort(byColumnAlpha{byColumn{SortColumn,cells[headerRows:]}})
+					sort.Sort(byColumnAlpha{byColumn{SortColumn-1,cells[headerRows:]}})
+				}
 			}
 		}
 	}
-
+	
 	// determine justifier used for a column
 	justifier := func(c int)func(string,int){
 		if c<len(justifiers) {
@@ -212,7 +214,7 @@ func NumbersRightJustified(c string,w int){
 }
 
 type byColumn  struct{
-	Column int
+	ColumnIndex int
 	Rows [][]string
 }
 
@@ -223,7 +225,7 @@ type byColumnAlpha  struct{
 	byColumn
 }
 
-func (a byColumnAlpha) Less(i, j int) bool { return a.Rows[i][a.Column] < a.Rows[j][a.Column] }
+func (a byColumnAlpha) Less(i, j int) bool { return a.Rows[i][a.ColumnIndex] < a.Rows[j][a.ColumnIndex] }
 
 
 type byColumnNumeric  struct{
@@ -231,8 +233,8 @@ type byColumnNumeric  struct{
 }
 
 func (a byColumnNumeric) Less(i, j int) bool { 
-	v1,err1:= strconv.ParseFloat(a.Rows[i][a.Column],64)
-	v2,err2:= strconv.ParseFloat(a.Rows[j][a.Column],64)
+	v1,err1:= strconv.ParseFloat(a.Rows[i][a.ColumnIndex],64)
+	v2,err2:= strconv.ParseFloat(a.Rows[j][a.ColumnIndex],64)
 	if err1==nil && err2==nil {
 		return v1 < v2
 	}
