@@ -128,7 +128,7 @@ func Print(tabulated string,headerRows int, justifiers ...func(string,int)) {
 	writeRow:=func(rf *rowFormatting) {
 		if rf==nil{return}
 		Writer.Write(rf.left)
-		temp:=justifierPadding
+		//temp:=justifierPadding
 		justifierPadding=rf.padding
 		if ColumnMapper==nil{
 			for column,width:=range(columnMaxWidths){
@@ -146,7 +146,7 @@ func Print(tabulated string,headerRows int, justifiers ...func(string,int)) {
 				}
 			}
 		}	
-		justifierPadding=temp
+		//justifierPadding=temp
 		Writer.Write(rf.right)
 		fmt.Fprintln(Writer)
 	}
@@ -176,11 +176,11 @@ func Print(tabulated string,headerRows int, justifiers ...func(string,int)) {
 	// write table
 	writeRow(topRowFormatting)
 	justifierPadding = cellRowFormatting.padding
-	
 	if ColumnMapper!=nil{
 		for row:=range cells{
 			if row==headerRows{
 				writeRow(dividerRowFormatting)
+				justifierPadding = cellRowFormatting.padding
 			}
 			Writer.Write(cellRowFormatting.left)
 			for column:=range(cells[row]){
@@ -197,6 +197,7 @@ func Print(tabulated string,headerRows int, justifiers ...func(string,int)) {
 		for row:=range cells{
 			if row==headerRows{
 				writeRow(dividerRowFormatting)
+				justifierPadding = cellRowFormatting.padding
 			}
 			Writer.Write(cellRowFormatting.left)
 			for column,cell:=range(cells[row]){
