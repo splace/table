@@ -4,6 +4,7 @@ import "fmt"
 import "testing"
 import "strings"
 
+
 var tableTests = []struct {
 	text       string
 	headerRows int   

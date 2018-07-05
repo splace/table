@@ -23,40 +23,39 @@ func (c codePoint) repeat(w int){
 	}
 }
 
-
-
-var formatterPadding codePoint
+var cellPrinterPadding codePoint
 
 type rowStyling struct{
 	left,padding,divider,right codePoint
 }
 
 // set global var 'Writer' then call Print.
-func Fprint(w io.Writer,tabulated string,formatters ...func(string,int)) {
+func Fprint(w io.Writer,tabulated string,cellPrinters ...func(string,int)) {
 	Writer=w
-	Print(tabulated, formatters...)
+	Print(tabulated, cellPrinters...)
 } 
 
 // set global var 'Style' then call Print.
-func Printf(s string, tabulated string, formatters ...func(string,int)) {
+func Printf(s string, tabulated string, cellPrinters ...func(string,int)) {
 	Style=s
-	Print(tabulated, formatters...)
+	Print(tabulated, cellPrinters...)
 }
 
 // set global var's 'Writer' and 'Style' then call Print.
-func Fprintf(w io.Writer,s string, tabulated string, formatters ...func(string,int)) {
+func Fprintf(w io.Writer,s string, tabulated string, cellPrinters ...func(string,int)) {
 	Writer=w
 	Style=s
-	Print(tabulated, formatters...)
+	Print(tabulated, cellPrinters...)
 }
 
 // write string as text table, mono-spaced font assumed, rows from lines, columns from tab character.
-// formatters - use by columns, missing:use default, len=1:use for all cells, len=n:use n'th for n'th column  
-// Not thread safe, uses globals, can be used multiple, fixed count, times using multiple imports.
+// cellPrinters - use by columns, missing:-use default, len=1:-use for all cells, len=n:-use n'th for n'th column  
+// Not thread safe, uses globals, but can be used multiple, fixed count, times using multiple imports.
 // Unicode supporting.
 // many built-in table styles, set global var `Style`
 // output written to global var `Writer`
-func Print(tabulated string, formatters ...func(string,int)) {
+// number of header row set by  var `HeaderRows`
+func Print(tabulated string, cellPrinters ...func(string,int)) {
 	// find max rows/widths, record cell strings
 	var columnMaxWidths []int 
 	var cells [][]string
@@ -94,15 +93,15 @@ func Print(tabulated string, formatters ...func(string,int)) {
 		}
 	}
 	
-	// determine formatter used for a column
-	formatter := func(c int)func(string,int){
-		if c<len(formatters) {
-			return formatters[c]
+	// determine cellPrinter used for a column
+	cellPrinter := func(c int)func(string,int){
+		if c<len(cellPrinters) {
+			return cellPrinters[c]
 		}
-		if len(formatters)==1{
-			return formatters[0]
+		if len(cellPrinters)==1{
+			return cellPrinters[0]
 		}
-		return DefaultFormatter
+		return DefaultCellPrinter
 	}
 	
 	// use a scanner to split Style string into individual UTF8 code points
@@ -127,10 +126,10 @@ func Print(tabulated string, formatters ...func(string,int)) {
 	writeRow:=func(rf *rowStyling) {
 		if rf==nil{return}
 		Writer.Write(rf.left)
-		formatterPadding=rf.padding
+		cellPrinterPadding=rf.padding
 		if ColumnMapper==nil{
 			for column,width:=range(columnMaxWidths){
-				formatter(column)("",width)
+				cellPrinter(column)("",width)
 				if column<len(columnMaxWidths)-1 {
 					Writer.Write(rf.divider)
 				}
@@ -138,7 +137,7 @@ func Print(tabulated string, formatters ...func(string,int)) {
 		}else{
 			for column:=range(columnMaxWidths){
 				c:=ColumnMapper(column)
-				formatter(c)("",columnMaxWidths[c])
+				cellPrinter(c)("",columnMaxWidths[c])
 				if column<len(columnMaxWidths)-1 {
 					Writer.Write(rf.divider)
 				}
@@ -172,17 +171,17 @@ func Print(tabulated string, formatters ...func(string,int)) {
 
 	// write table
 	writeRow(topRowStyling)
-	formatterPadding = cellRowStyling.padding
+	cellPrinterPadding = cellRowStyling.padding
 	if ColumnMapper!=nil{
 		for row:=range cells{
 			if row==HeaderRows{
 				writeRow(dividerRowStyling)
-				formatterPadding = cellRowStyling.padding
+				cellPrinterPadding = cellRowStyling.padding
 			}
 			Writer.Write(cellRowStyling.left)
 			for column:=range(cells[row]){
 				c:=ColumnMapper(column)
-				formatter(c)(cells[row][c],columnMaxWidths[c])
+				cellPrinter(c)(cells[row][c],columnMaxWidths[c])
 				if column<len(columnMaxWidths)-1 {
 					Writer.Write(cellRowStyling.divider)
 				}
@@ -194,11 +193,11 @@ func Print(tabulated string, formatters ...func(string,int)) {
 		for row:=range cells{
 			if row==HeaderRows{
 				writeRow(dividerRowStyling)
-				formatterPadding = cellRowStyling.padding
+				cellPrinterPadding = cellRowStyling.padding
 			}
 			Writer.Write(cellRowStyling.left)
 			for column,cell:=range(cells[row]){
-				formatter(column)(cell,columnMaxWidths[column])
+				cellPrinter(column)(cell,columnMaxWidths[column])
 				if column<len(columnMaxWidths)-1 {
 					Writer.Write(cellRowStyling.divider)
 				}
@@ -210,27 +209,27 @@ func Print(tabulated string, formatters ...func(string,int)) {
 	writeRow(scanRowStyling())
 }
 
-// formatters
+// cellPrinters
 
-// used to format when no specific formatters provided
-var DefaultFormatter = Centred
+// used to format when no specific cellPrinters provided
+var DefaultCellPrinter = Centred
 
 func RightJustified(c string,w int){
-	formatterPadding.repeat(w-len([]rune(c)))
+	cellPrinterPadding.repeat(w-len([]rune(c)))
 	fmt.Fprint(Writer,c)
 }
 
 func LeftJustified(c string,w int){
 	fmt.Fprint(Writer,c)
-	formatterPadding.repeat(w-len([]rune(c)))
+	cellPrinterPadding.repeat(w-len([]rune(c)))
 }
 
 func Centred(c string,w int){
 	lc:=len([]rune(c))
 	offset:=((w-lc+1)/2)
-	formatterPadding.repeat(offset)
+	cellPrinterPadding.repeat(offset)
 	fmt.Fprint(Writer,c)
-	formatterPadding.repeat(w-lc-offset)
+	cellPrinterPadding.repeat(w-lc-offset)
 }
 
 func NumberBoolJustified(c string,w int){	
@@ -251,7 +250,7 @@ func NumbersRightJustified(c string,w int){
 	LeftJustified(c,w)
 }
 
-// modify a formatter to have a minimum width
+// modify a cellPrinter to have a minimum width
 func MinWidth(form func(string,int),min uint)func(string,int){
 	m:=int(min)
 	return func(s string,w int){
