@@ -16,7 +16,8 @@ var (
 	SortColumn int
 	NumericNotAlphaSort bool
 	DefaultCellPrinter = Centred
-	DividerEvery int 
+	DividerEvery int
+	FormfeedWithDivider bool 
 )
 
 type codePoint []byte
@@ -182,8 +183,16 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 	writeRow(topRowStyling)
 	cellPrinterPadding = cellRowStyling.padding
 	for row := range cells {
-		if row-HeaderRows ==0 || DividerEvery>0 && row-HeaderRows > DividerEvery && (row - HeaderRows) % DividerEvery ==0{
+		if row-HeaderRows ==0 {
 			writeRow(dividerRowStyling)
+			cellPrinterPadding = cellRowStyling.padding
+		}
+		if DividerEvery>0 && row-HeaderRows > DividerEvery && (row - HeaderRows) % DividerEvery ==0{
+			writeRow(dividerRowStyling)
+			if FormfeedWithDivider {
+				Writer.Write([]byte("\f"))
+				writeRow(dividerRowStyling)
+			}
 			cellPrinterPadding = cellRowStyling.padding
 		}
 		Writer.Write(cellRowStyling.left)
