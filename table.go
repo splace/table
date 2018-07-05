@@ -199,7 +199,7 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 		if ColumnMapper == nil {
 			for column, cell := range cells[row] {
 				cellPrinter(column)(cell, columnMaxWidths[column])
-				if column < len(columnMaxWidths)-1 {
+				if column < len(cells[row])-1 {
 					Writer.Write(cellRowStyling.divider)
 				}
 			}
