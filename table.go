@@ -12,12 +12,11 @@ var (
 	Writer io.Writer
 	HeaderRows int = 1
 	Style = MarkupStyle
+	ColumnMapper func(int) int // rearrange columns
 	SortColumn int
 	NumericNotAlphaSort bool
+	DefaultCellPrinter = Centred	
 )
-
-// rearrange columns
-var ColumnMapper func(int) int
 
 type codePoint []byte
 
@@ -220,8 +219,6 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 
 // #cellPrinters
 
-// used to format when no specific cellPrinters provided
-var DefaultCellPrinter = Centred
 
 func RightJustified(c string, w int) {
 	cellPrinterPadding.repeat(w - len([]rune(c)))
