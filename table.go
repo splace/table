@@ -15,7 +15,8 @@ var (
 	ColumnMapper func(int) int // rearrange columns
 	SortColumn int
 	NumericNotAlphaSort bool
-	DefaultCellPrinter = Centred	
+	DefaultCellPrinter = Centred
+	DividerEvery int 
 )
 
 type codePoint []byte
@@ -97,7 +98,7 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 		}
 	}
 
-	// determine cellPrinter used for a column
+	// find the cellPrinter needed for a column
 	cellPrinter := func(c int) func(string, int) {
 		if c < len(cellPrinters) {
 			return cellPrinters[c]
@@ -112,7 +113,7 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 	runeScanner := bufio.NewScanner(strings.NewReader(Style))
 	runeScanner.Split(bufio.ScanRunes)
 
-	// scan four code points, for a row.
+	// scan a row style, 4 code points.
 	scanRowStyling := func() *rowStyling {
 		rf := new(rowStyling)
 		runeScanner.Scan()
@@ -128,7 +129,7 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 		return rf
 	}
 
-	// write a content-less row, if Styleting present.
+	// write a content-less row, if Styling present.
 	writeRow := func(rf *rowStyling) {
 		if rf == nil {
 			return
@@ -180,13 +181,20 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 	// write table
 	writeRow(topRowStyling)
 	cellPrinterPadding = cellRowStyling.padding
-	if ColumnMapper != nil {
-		for row := range cells {
-			if row == HeaderRows {
-				writeRow(dividerRowStyling)
-				cellPrinterPadding = cellRowStyling.padding
+	for row := range cells {
+		if row-HeaderRows ==0 || DividerEvery>0 && row-HeaderRows > DividerEvery && (row - HeaderRows) % DividerEvery ==0{
+			writeRow(dividerRowStyling)
+			cellPrinterPadding = cellRowStyling.padding
+		}
+		Writer.Write(cellRowStyling.left)
+		if ColumnMapper == nil {
+			for column, cell := range cells[row] {
+				cellPrinter(column)(cell, columnMaxWidths[column])
+				if column < len(columnMaxWidths)-1 {
+					Writer.Write(cellRowStyling.divider)
+				}
 			}
-			Writer.Write(cellRowStyling.left)
+		} else {
 			for column := range cells[row] {
 				c := ColumnMapper(column)
 				cellPrinter(c)(cells[row][c], columnMaxWidths[c])
@@ -194,25 +202,9 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 					Writer.Write(cellRowStyling.divider)
 				}
 			}
-			Writer.Write(cellRowStyling.right)
-			fmt.Fprintln(Writer)
 		}
-	} else {
-		for row := range cells {
-			if row == HeaderRows {
-				writeRow(dividerRowStyling)
-				cellPrinterPadding = cellRowStyling.padding
-			}
-			Writer.Write(cellRowStyling.left)
-			for column, cell := range cells[row] {
-				cellPrinter(column)(cell, columnMaxWidths[column])
-				if column < len(columnMaxWidths)-1 {
-					Writer.Write(cellRowStyling.divider)
-				}
-			}
-			Writer.Write(cellRowStyling.right)
-			fmt.Fprintln(Writer)
-		}
+		Writer.Write(cellRowStyling.right)
+		fmt.Fprintln(Writer)
 	}
 	writeRow(scanRowStyling())
 }
