@@ -10,7 +10,7 @@ import "sort"
 var Writer io.Writer
 var SortColumn  int
 var NumericNotAlphaSort bool
-
+var HeaderRows int = 1
 // rearrange columns 
 var ColumnMapper func(int)int
 
@@ -31,33 +31,32 @@ type rowStyling struct{
 	left,padding,divider,right codePoint
 }
 
-// see Print
-func Fprint(w io.Writer,tabulated string,headerRows int, formatters ...func(string,int)) {
+// set global var 'Writer' then call Print.
+func Fprint(w io.Writer,tabulated string,formatters ...func(string,int)) {
 	Writer=w
-	Print(tabulated,headerRows, formatters...)
+	Print(tabulated, formatters...)
 } 
 
-// see Print
-func Printf(s string, tabulated string,headerRows int, formatters ...func(string,int)) {
+// set global var 'Style' then call Print.
+func Printf(s string, tabulated string, formatters ...func(string,int)) {
 	Style=s
-	Print(tabulated,headerRows, formatters...)
+	Print(tabulated, formatters...)
 }
 
-// see Print
-func Fprintf(w io.Writer,s string, tabulated string,headerRows int, formatters ...func(string,int)) {
+// set global var's 'Writer' and 'Style' then call Print.
+func Fprintf(w io.Writer,s string, tabulated string, formatters ...func(string,int)) {
 	Writer=w
 	Style=s
-	Print(tabulated,headerRows, formatters...)
+	Print(tabulated, formatters...)
 }
 
 // write string as text table, mono-spaced font assumed, rows from lines, columns from tab character.
-// headerrows - specify how many rows, at the top, formatted specially.
 // formatters - use by columns, missing:use default, len=1:use for all cells, len=n:use n'th for n'th column  
 // Not thread safe, uses globals, can be used multiple, fixed count, times using multiple imports.
 // Unicode supporting.
 // many built-in table styles, set global var `Style`
 // output written to global var `Writer`
-func Print(tabulated string,headerRows int, formatters ...func(string,int)) {
+func Print(tabulated string, formatters ...func(string,int)) {
 	// find max rows/widths, record cell strings
 	var columnMaxWidths []int 
 	var cells [][]string
@@ -78,8 +77,8 @@ func Print(tabulated string,headerRows int, formatters ...func(string,int)) {
 
 	// order sortColumn by NumericNotAlphaSort
 	if SortColumn>0{
-		if headerRows<len(cells){
-			if headerRows<0 {
+		if HeaderRows<len(cells){
+			if HeaderRows<0 {
 				if NumericNotAlphaSort{
 					sort.Sort(byColumnNumeric{byColumn{SortColumn-1,cells}})
 					}else{
@@ -87,9 +86,9 @@ func Print(tabulated string,headerRows int, formatters ...func(string,int)) {
 				}
 			}else {	
 				if NumericNotAlphaSort{
-					sort.Sort(byColumnNumeric{byColumn{SortColumn-1,cells[headerRows:]}})
+					sort.Sort(byColumnNumeric{byColumn{SortColumn-1,cells[HeaderRows:]}})
 				}else{
-					sort.Sort(byColumnAlpha{byColumn{SortColumn-1,cells[headerRows:]}})
+					sort.Sort(byColumnAlpha{byColumn{SortColumn-1,cells[HeaderRows:]}})
 				}
 			}
 		}
@@ -176,7 +175,7 @@ func Print(tabulated string,headerRows int, formatters ...func(string,int)) {
 	formatterPadding = cellRowStyling.padding
 	if ColumnMapper!=nil{
 		for row:=range cells{
-			if row==headerRows{
+			if row==HeaderRows{
 				writeRow(dividerRowStyling)
 				formatterPadding = cellRowStyling.padding
 			}
@@ -193,7 +192,7 @@ func Print(tabulated string,headerRows int, formatters ...func(string,int)) {
 		}
 	}else{  
 		for row:=range cells{
-			if row==headerRows{
+			if row==HeaderRows{
 				writeRow(dividerRowStyling)
 				formatterPadding = cellRowStyling.padding
 			}

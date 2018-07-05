@@ -155,7 +155,8 @@ func TestTable(t *testing.T) {
 	var buf strings.Builder
 	Writer=&buf
 	for i, tt := range tableTests {
-		Print(tt.text,tt.headerRows,tt.justifiers...)
+		HeaderRows=tt.headerRows
+		Print(tt.text,tt.justifiers...)
 		if buf.String()!=fmt.Sprintln(tt.output){
 			t.Fatalf("#%v:found:\n%s wanted:\n%s",i,buf.String(),tt.output)
 		}
@@ -163,7 +164,8 @@ func TestTable(t *testing.T) {
 	}
 	Style=ASCIIStyle
 	for i, tt := range tableTests {
-		Print(tt.text,tt.headerRows,tt.justifiers...)
+		HeaderRows=tt.headerRows
+		Print(tt.text,tt.justifiers...)
 		if buf.String()!=fmt.Sprintln(tt.outputACIIStyle){
 			t.Fatalf("#%v:found:\n%s wanted:\n%s",i,buf.String(),tt.outputACIIStyle)
 		}
@@ -171,7 +173,8 @@ func TestTable(t *testing.T) {
 	}
 	SortColumn =1
 	for i, tt := range tableTests {
-		Print(tt.text,tt.headerRows,tt.justifiers...)
+		HeaderRows=tt.headerRows
+		Print(tt.text,tt.justifiers...)
 		if buf.String()!=fmt.Sprintln(tt.outputACIIStyleSortColumn1){
 			t.Fatalf("#%v:found:\n%s wanted:\n%s",i,buf.String(),tt.outputACIIStyleSortColumn1)
 		}
@@ -180,7 +183,8 @@ func TestTable(t *testing.T) {
 	
 	ColumnMapper=MoveToLeftEdge(2) 
 	for i, tt := range tableTests {
-		Print(tt.text,tt.headerRows,tt.justifiers...)
+		HeaderRows=tt.headerRows
+		Print(tt.text,tt.justifiers...)
 		if buf.String()!=fmt.Sprintln(tt.outputACIIStyleSortColumn1Column2ToLeft){
 			t.Fatalf("#%v:found:\n%s wanted:\n%s",i,buf.String(),tt.outputACIIStyleSortColumn1Column2ToLeft)
 		}
