@@ -305,11 +305,11 @@ func (a byColumnNumeric) Less(i, j int) bool {
 func MoveToLeftEdge(column uint) func(int) int {
 	c := int(column - 1)
 	return func(n int) int {
-		if n < c {
-			return n + 1
+		if n==0 {
+			return c
 		}
-		if n == c {
-			return 0
+		if n <= c {
+			return n - 1
 		}
 		return n
 	}
