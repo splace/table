@@ -114,11 +114,11 @@ Alan Roe	42	1.90`,
 |Alan Roe|42 |   1.90  |
 |Jane Roe|42 |   1.90  |
 |John Doe|47 |   1.89  |`,
-		`|Age|  Name  |Height(m)|
+		`|Age|Name    |Height(m)|
 +---+--------+---------+
-|42 |Alan Roe|   1.90  |
-|42 |Jane Roe|   1.90  |
-|47 |John Doe|   1.89  |`,
+| 42|Alan Roe|   1.90  |
+| 42|Jane Roe|   1.90  |
+| 47|John Doe|   1.89  |`,
 	},
 	{
 		`Name	Age	Height(m)
@@ -126,7 +126,7 @@ John Doe	47	1.89
 Jane Roe	42	1.90
 Alan Roe	42	1.90`,
 		1,
-		[]func(string, int){Centred, MinWidth(RightJustified, 5)},
+		[]func(string, int){Centred ,MinWidth(RightJustified, 5)},
 		`|  Name  |  Age|Height(m)|
 |--------|-----|---------|
 |John Doe|   47|   1.89  |
@@ -142,11 +142,11 @@ Alan Roe	42	1.90`,
 |Alan Roe|   42|   1.90  |
 |Jane Roe|   42|   1.90  |
 |John Doe|   47|   1.89  |`,
-		`|  Age|  Name  |Height(m)|
-+-----+--------+---------+
-|   42|Alan Roe|   1.90  |
-|   42|Jane Roe|   1.90  |
-|   47|John Doe|   1.89  |`,
+		`|Age|    Name|Height(m)|
++---+--------+---------+
+| 42|Alan Roe|   1.90  |
+| 42|Jane Roe|   1.90  |
+| 47|John Doe|   1.89  |`,
 	},
 }
 

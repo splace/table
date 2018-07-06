@@ -103,11 +103,11 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 
 	// the cellPrinter needed for a column
 	cellPrinter := func(c int) func(string, int) {
-		if c < len(cellPrinters) {
-			return cellPrinters[c]
-		}
 		if len(cellPrinters) == 1 {
 			return cellPrinters[0]
+		}
+		if c < len(cellPrinters) {
+			return cellPrinters[c]
 		}
 		return DefaultCellPrinter
 	}
@@ -149,7 +149,7 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 		} else {
 			for column := range columnMaxWidths {
 				c := ColumnMapper(column)
-				cellPrinter(c)("", columnMaxWidths[c])
+				cellPrinter(column)("", columnMaxWidths[c])
 				if column < len(columnMaxWidths)-1 {
 					Writer.Write(rf.divider)
 				}
@@ -159,7 +159,7 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 		fmt.Fprintln(Writer)
 	}
 
-	// parse row type Styleing blocks from Style, use helpful assumptions when not all blocks present.
+	// parse row type Styling blocks from Style, use helpful assumptions when not all blocks present.
 	var dividerRowStyling, cellRowStyling, topRowStyling *rowStyling
 	firstRowStyling := scanRowStyling()
 	if firstRowStyling == nil {
@@ -208,7 +208,7 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 		} else {
 			for column := range cells[row] {
 				c := ColumnMapper(column)
-				cellPrinter(c)(cells[row][c], columnMaxWidths[c])
+				cellPrinter(column)(cells[row][c], columnMaxWidths[c])
 				if column < len(columnMaxWidths)-1 {
 					Writer.Write(cellRowStyling.divider)
 				}

@@ -27,13 +27,13 @@ func ExamplePrint() {
 	Style=RoundedDoubleInsideBoxStyle
 	ColumnMapper=MoveToLeftEdge(3)
 	SortColumn=1
-	Print("**Firstname**\t**Lastname**\t**Age**\nJill\tSmith\t50\nEve\tJackson\t45")
+	Print("**Firstname**\t**Lastname**\t**Age**\nJill\tSmith\t50\nEve\tJackson\t45",RightJustified,Centred)
 	// Output:
 	//╭───────╥─────────────╥────────────╮
 	//│**Age**║**Firstname**║**Lastname**│
 	//╞═══════╬═════════════╬════════════╡
-	//│   45  ║     Eve     ║   Jackson  │
-	//│   50  ║     Jill    ║    Smith   │
+	//│     45║     Eve     ║   Jackson  │
+	//│     50║     Jill    ║    Smith   │
 	//╰───────╨─────────────╨────────────╯
 }
 
