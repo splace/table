@@ -1,3 +1,4 @@
+// package table prettifies tab/line text tables to aligned/formatted/sorted/rearranged and justified text tables.
 package table
 
 import "strings"
@@ -9,15 +10,15 @@ import "sort"
 
 // global options
 var (
-	Writer io.Writer
-	HeaderRows int = 1
-	Style = MarkupStyle
-	ColumnMapper func(int) int // rearrange columns
-	SortColumn int
+	Writer              io.Writer
+	HeaderRows          = 1
+	Style                             = MarkupStyle
+	ColumnMapper        func(int) int // rearrange columns
+	SortColumn          int
 	NumericNotAlphaSort bool
-	DefaultCellPrinter = Centred
-	DividerEvery int
-	FormfeedWithDivider bool 
+	DefaultCellPrinter  = Centred
+	DividerEvery        int
+	FormfeedWithDivider bool
 )
 
 type codePoint []byte
@@ -54,13 +55,14 @@ func Fprintf(w io.Writer, s string, tabulated string, cellPrinters ...func(strin
 	Print(tabulated, cellPrinters...)
 }
 
-// write string as text table, mono-spaced font assumed, rows from lines, columns from tab character.
-// cellPrinters - use by columns, missing:-use default, len=1:-use for all cells, len=n:-use n'th for n'th column
+// Write tabulated string as text table, rows from lines, columns from tab character.
+// Mono-spaced font required for alignment,
+// cellPrinters - by columns, missing:-use default, len=1:-use for all cells, len=n:-use n'th for n'th column
 // Not thread safe, uses globals, but can be used multiple, fixed count, times using multiple imports.
 // Unicode supporting.
-// many built-in table styles, set global var `Style`
-// output written to global var `Writer`
-// number of header row set by  var `HeaderRows`
+// Many built-in table styles, set global var `Style`
+// Output written to global var `Writer`
+// Number of header row set by  var `HeaderRows`
 func Print(tabulated string, cellPrinters ...func(string, int)) {
 	// find max rows/widths, record cell strings
 	var columnMaxWidths []int
@@ -80,7 +82,7 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 		cells = append(cells, rowCells)
 	}
 
-	// order sortColumn by NumericNotAlphaSort
+	// order sortColumn
 	if SortColumn > 0 {
 		if HeaderRows < len(cells) {
 			if HeaderRows < 0 {
@@ -99,7 +101,7 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 		}
 	}
 
-	// find the cellPrinter needed for a column
+	// the cellPrinter needed for a column
 	cellPrinter := func(c int) func(string, int) {
 		if c < len(cellPrinters) {
 			return cellPrinters[c]
@@ -157,7 +159,7 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 		fmt.Fprintln(Writer)
 	}
 
-	// parse row type Styleting blocks from Style, use helpful assumptions when not all blocks present.
+	// parse row type Styleing blocks from Style, use helpful assumptions when not all blocks present.
 	var dividerRowStyling, cellRowStyling, topRowStyling *rowStyling
 	firstRowStyling := scanRowStyling()
 	if firstRowStyling == nil {
@@ -183,11 +185,11 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 	writeRow(topRowStyling)
 	cellPrinterPadding = cellRowStyling.padding
 	for row := range cells {
-		if row-HeaderRows ==0 {
+		if row-HeaderRows == 0 {
 			writeRow(dividerRowStyling)
 			cellPrinterPadding = cellRowStyling.padding
 		}
-		if DividerEvery>0 && row-HeaderRows > DividerEvery && (row - HeaderRows) % DividerEvery ==0{
+		if DividerEvery > 0 && row-HeaderRows > DividerEvery && (row-HeaderRows)%DividerEvery == 0 {
 			writeRow(dividerRowStyling)
 			if FormfeedWithDivider {
 				Writer.Write([]byte("\f"))
@@ -220,7 +222,6 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 
 // #cellPrinters
 
-
 func RightJustified(c string, w int) {
 	cellPrinterPadding.repeat(w - len([]rune(c)))
 	fmt.Fprint(Writer, c)
@@ -239,7 +240,7 @@ func Centred(c string, w int) {
 	cellPrinterPadding.repeat(w - lc - offset)
 }
 
-func NumberBoolJustified(c string, w int) {
+func NumbersBoolJustified(c string, w int) {
 	_, err := strconv.ParseBool(c)
 	if err == nil {
 		Centred(c, w)
