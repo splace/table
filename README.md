@@ -16,3 +16,5 @@ to:-
     │     Eve     ║   Jackson  ║   45  │
     │     Jill    ║    Smith   ║   50  │
     ╰─────────────╨────────────╨───────╯
+
+Notice: markdown tables can be simply converted, find/replace, to tab based sources for this package. 
