@@ -190,7 +190,7 @@ func TestTable(t *testing.T) {
 		buf.Reset()
 	}
 	HeaderRows = 1
-	Style = MarkupStyle
+	Style = MarkdownStyle
 	SortColumn = 0
 	ColumnMapper = nil
 

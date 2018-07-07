@@ -12,7 +12,7 @@ import "sort"
 var (
 	Writer              io.Writer
 	HeaderRows          = 1
-	Style                             = MarkupStyle
+	Style                             = MarkdownStyle
 	ColumnMapper        func(int) int // rearrange columns
 	SortColumn          int
 	NumericNotAlphaSort bool
