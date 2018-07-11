@@ -189,9 +189,4 @@ func TestTable(t *testing.T) {
 		}
 		buf.Reset()
 	}
-	HeaderRows = 1
-	Style = MarkdownStyle
-	SortColumn = 0
-	ColumnMapper = nil
-
 }

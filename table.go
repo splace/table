@@ -23,7 +23,7 @@ var (
 
 type codePoint []byte
 
-// write a code point repeatedly
+// write a code point many times
 func (c codePoint) repeat(w int) {
 	for i := 0; i < w; i++ {
 		Writer.Write(c)
@@ -55,14 +55,17 @@ func Fprintf(w io.Writer, s string, tabulated string, cellPrinters ...func(strin
 	Print(tabulated, cellPrinters...)
 }
 
-// Write tabulated string as text table, rows from lines, columns from tab character.
-// Mono-spaced font required for alignment,
-// cellPrinters - by columns, missing:-use default, len=1:-use for all cells, len=n:-use n'th for n'th column
-// Not thread safe, uses globals, but can be used multiple, fixed count, times using multiple imports.
+// Write 'tabulated' string as text table, rows coming from lines, columns separated by the tab character.
+// Mono-spaced font required for alignment.
+// cellPrinters - applied to columns:
+// * missing - use default
+// * len=1 - use for all cells
+// * len=n - use n'th for n'th column, use default if column count>n
+// Not thread safe, uses globals, however can be used multiple, fixed count, times by using multiple imports.
 // Unicode supporting.
 // Many built-in table styles, set global var `Style`
 // Output written to global var `Writer`
-// Number of header row set by  var `HeaderRows`
+// Number of header rows set by  var `HeaderRows`
 func Print(tabulated string, cellPrinters ...func(string, int)) {
 	// find max rows/widths, record cell strings
 	var columnMaxWidths []int
@@ -87,15 +90,15 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 		if HeaderRows < len(cells) {
 			if HeaderRows < 0 {
 				if NumericNotAlphaSort {
-					sort.Sort(byColumnNumeric{byColumn{SortColumn - 1, cells}})
+					sort.Sort(byColumnNumeric{byColumn{cells}})
 				} else {
-					sort.Sort(byColumnAlpha{byColumn{SortColumn - 1, cells}})
+					sort.Sort(byColumnAlpha{byColumn{cells}})
 				}
 			} else {
 				if NumericNotAlphaSort {
-					sort.Sort(byColumnNumeric{byColumn{SortColumn - 1, cells[HeaderRows:]}})
+					sort.Sort(byColumnNumeric{byColumn{cells[HeaderRows:]}})
 				} else {
-					sort.Sort(byColumnAlpha{byColumn{SortColumn - 1, cells[HeaderRows:]}})
+					sort.Sort(byColumnAlpha{byColumn{cells[HeaderRows:]}})
 				}
 			}
 		}
@@ -270,10 +273,9 @@ func MinWidth(form func(string, int), min uint) func(string, int) {
 	}
 }
 
-// #sorters
+// #sorters, implementing sort.Interface 
 
 type byColumn struct {
-	ColumnIndex int
 	Rows        [][]string
 }
 
@@ -284,15 +286,15 @@ type byColumnAlpha struct {
 	byColumn
 }
 
-func (a byColumnAlpha) Less(i, j int) bool { return a.Rows[i][a.ColumnIndex] < a.Rows[j][a.ColumnIndex] }
+func (a byColumnAlpha) Less(i, j int) bool { return a.Rows[i][SortColumn-1] < a.Rows[j][SortColumn-1] }
 
 type byColumnNumeric struct {
 	byColumn
 }
 
 func (a byColumnNumeric) Less(i, j int) bool {
-	v1, err1 := strconv.ParseFloat(a.Rows[i][a.ColumnIndex], 64)
-	v2, err2 := strconv.ParseFloat(a.Rows[j][a.ColumnIndex], 64)
+	v1, err1 := strconv.ParseFloat(a.Rows[i][SortColumn-1], 64)
+	v2, err2 := strconv.ParseFloat(a.Rows[j][SortColumn-1], 64)
 	if err1 == nil && err2 == nil {
 		return v1 < v2
 	}
@@ -301,7 +303,7 @@ func (a byColumnNumeric) Less(i, j int) bool {
 
 // #mappers
 
-// column mapper to put a particular column first, columns are numbered from 1, otherwise preserves order.
+// returns a column mapper func, that puts a particular column first, columns are indexed from 1, otherwise preserves order.
 func MoveToLeftEdge(column uint) func(int) int {
 	c := int(column - 1)
 	return func(n int) int {

@@ -4,7 +4,7 @@ package table
 const (
 	ASCIIStyle                            string = "+-++| ||"
 	ASCIIBoxStyle                         string = "+-+++-++| ||+-++"
-	MarkdownStyle                           string = "|-||| ||"
+	MarkdownStyle                         string = "|-||| ||"
 	BoxStyle                              string = "┌─┬┐├─┼┤│ ││└─┴┘"
 	DoubleBoxStyle                        string = "╔═╦╗╠═╬╣║ ║║╚═╩╝"
 	ThickHeaderDivideBoxStyle             string = "┌─┬┐┝━┿┥│ ││└─┴┘"
