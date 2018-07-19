@@ -135,7 +135,8 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 		return rf
 	}
 
-	// write a content-less row, if Styling present.
+	// write a content-less row using a row style, do nothing if nil.
+	// used for top/bottom border and divider rows
 	writeRow := func(rf *rowStyling) {
 		if rf == nil {
 			return
@@ -162,7 +163,7 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 		fmt.Fprintln(Writer)
 	}
 
-	// parse row type Styling blocks from Style, use helpful assumptions when not all blocks present.
+	// scan Style string for row Stylings,  use helpful assumptions when not all blocks present.
 	var dividerRowStyling, cellRowStyling, topRowStyling *rowStyling
 	firstRowStyling := scanRowStyling()
 	if firstRowStyling == nil {
@@ -225,16 +226,19 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 
 // #cellPrinters
 
+// right justifier printer
 func RightJustified(c string, w int) {
 	cellPrinterPadding.repeat(w - len([]rune(c)))
 	fmt.Fprint(Writer, c)
 }
 
+// left justifier printer
 func LeftJustified(c string, w int) {
 	fmt.Fprint(Writer, c)
 	cellPrinterPadding.repeat(w - len([]rune(c)))
 }
 
+// centre printer
 func Centred(c string, w int) {
 	lc := len([]rune(c))
 	offset := ((w - lc + 1) / 2)
@@ -243,6 +247,7 @@ func Centred(c string, w int) {
 	cellPrinterPadding.repeat(w - lc - offset)
 }
 
+// centre print a boolean, right justify a number, default otherwise.
 func NumbersBoolJustified(c string, w int) {
 	_, err := strconv.ParseBool(c)
 	if err == nil {
@@ -252,13 +257,14 @@ func NumbersBoolJustified(c string, w int) {
 	NumbersRightJustified(c, w)
 }
 
+// right justify if a number
 func NumbersRightJustified(c string, w int) {
 	_, err := strconv.ParseInt(c, 10, 64)
 	if err == nil {
 		RightJustified(c, w)
 		return
 	}
-	LeftJustified(c, w)
+	DefaultCellPrinter(c, w)
 }
 
 // modify a cellPrinter to have a minimum width
