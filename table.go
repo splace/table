@@ -63,7 +63,6 @@ func Fprintf(w io.Writer, s string, tabulated string, cellPrinters ...func(strin
 // * len=n - use n'th for n'th column, use default if column count>n
 // Not thread safe, uses globals for options (see variables), however can be used multiple, fixed count, times by using multiple imports and different aliases.
 // Unicode supporting.
-// Many built-in table styles, set global var `Style`
 func Print(tabulated string, cellPrinters ...func(string, int)) {
 	// find max rows/widths, record cell strings
 	var columnMaxWidths []int
