@@ -12,7 +12,7 @@ import "sort"
 var (
 	Writer              io.Writer
 	HeaderRows          = 1
-	Style                             = MarkdownStyle
+	Style               = MarkdownStyle
 	ColumnMapper        func(int) int // rearrange columns
 	SortColumn          int
 	NumericNotAlphaSort bool
@@ -23,7 +23,7 @@ var (
 
 type codePoint []byte
 
-// write a code point many times
+// write a code point a number of times
 func (c codePoint) repeat(w int) {
 	for i := 0; i < w; i++ {
 		Writer.Write(c)
@@ -48,7 +48,7 @@ func Printf(s string, tabulated string, cellPrinters ...func(string, int)) {
 	Print(tabulated, cellPrinters...)
 }
 
-// set global var's 'Writer' and 'Style' then call Print.
+// set the global var's 'Writer' and 'Style' then call Print.
 func Fprintf(w io.Writer, s string, tabulated string, cellPrinters ...func(string, int)) {
 	Writer = w
 	Style = s
@@ -61,11 +61,9 @@ func Fprintf(w io.Writer, s string, tabulated string, cellPrinters ...func(strin
 // * missing - use default
 // * len=1 - use for all cells
 // * len=n - use n'th for n'th column, use default if column count>n
-// Not thread safe, uses globals, however can be used multiple, fixed count, times by using multiple imports.
+// Not thread safe, uses globals for options (see variables), however can be used multiple, fixed count, times by using multiple imports and different aliases.
 // Unicode supporting.
 // Many built-in table styles, set global var `Style`
-// Output written to global var `Writer`
-// Number of header rows set by  var `HeaderRows`
 func Print(tabulated string, cellPrinters ...func(string, int)) {
 	// find max rows/widths, record cell strings
 	var columnMaxWidths []int
@@ -163,7 +161,7 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 		fmt.Fprintln(Writer)
 	}
 
-	// scan Style string for row Stylings,  use helpful assumptions when not all blocks present.
+	// scan and store row Stylings from Style string, use helpful assumptions when not all blocks present.
 	var dividerRowStyling, cellRowStyling, topRowStyling *rowStyling
 	firstRowStyling := scanRowStyling()
 	if firstRowStyling == nil {
@@ -221,6 +219,7 @@ func Print(tabulated string, cellPrinters ...func(string, int)) {
 		Writer.Write(cellRowStyling.right)
 		fmt.Fprintln(Writer)
 	}
+	// scan remaining row styling, if any, from Style for bottom border row. 
 	writeRow(scanRowStyling())
 }
 
@@ -247,7 +246,7 @@ func Centred(c string, w int) {
 	cellPrinterPadding.repeat(w - lc - offset)
 }
 
-// centre print a boolean, right justify a number, default otherwise.
+// centre print if a boolean, right justify if a number, default otherwise.
 func NumbersBoolJustified(c string, w int) {
 	_, err := strconv.ParseBool(c)
 	if err == nil {
@@ -309,7 +308,7 @@ func (a byColumnNumeric) Less(i, j int) bool {
 
 // #mappers
 
-// returns a column mapper func, that puts a particular column first, columns are indexed from 1, otherwise preserves order.
+// returns a column mapper func, that puts a particular column first, (columns start from 1), otherwise preserves order.
 func MoveToLeftEdge(column uint) func(int) int {
 	c := int(column - 1)
 	return func(n int) int {
